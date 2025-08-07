@@ -3511,19 +3511,10 @@ bool IRTranslator::translate(const Constant &C, Register Reg) {
     }
     EntryBuilder->buildBuildVector(Reg, Ops);
   } else if (auto CE = dyn_cast<ConstantExpr>(&C)) {
-    auto Builder = *EntryBuilder.get();
-    if (TLI->shouldBuildInlinedGEPsNextToUse() &&
-        CE->getOpcode() == Instruction::GetElementPtr &&
-        // If we have Constants as users, build using EntryBuilder to avoid
-        // use-before-def cases.
-        llvm::none_of(C.users(),
-                      [&](const User *U) { return isa<Constant>(*U); })) {
-      Builder = *CurBuilder.get();
-    }
     switch(CE->getOpcode()) {
 #define HANDLE_INST(NUM, OPCODE, CLASS)                                        \
   case Instruction::OPCODE:                                                    \
-    return translate##OPCODE(*CE, Builder);
+    return translate##OPCODE(*CE, *EntryBuilder.get());
 #include "llvm/IR/Instruction.def"
     default:
       return false;

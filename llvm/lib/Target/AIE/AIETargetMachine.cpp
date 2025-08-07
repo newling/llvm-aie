@@ -4,7 +4,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// (c) Copyright 2023-2024 Advanced Micro Devices, Inc. or its affiliates
+// (c) Copyright 2023-2025 Advanced Micro Devices, Inc. or its affiliates
 //
 //===----------------------------------------------------------------------===//
 //
@@ -59,6 +59,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAIETarget() {
   initializeAIEAddressSpaceFlatteningPass(*PR);
   initializeAIEEliminateDuplicatePHIPass(*PR);
   initializeAIEClusterBaseAddressPass(*PR);
+  initializeAIEPtrModOptimizerPass(*PR);
   initializeAIE2PreLegalizerCombinerPass(*PR);
   initializeAIE2PPreLegalizerCombinerPass(*PR);
   initializeAIE2PostLegalizerGenericCombinerPass(*PR);
@@ -70,6 +71,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAIETarget() {
   initializeAIESubRegConstrainerPass(*PR);
   initializeAIESuperRegRewriterPass(*PR);
   initializeAIEWawRegRewriterPass(*PR);
+  initializeAIEOutlineMemoryGEPPass(*PR);
   initializeAIEFinalizeBundlePass(*PR);
   initializeAIEMachineAlignmentPass(*PR);
   initializeAIEMachineBlockPlacementPass(*PR);

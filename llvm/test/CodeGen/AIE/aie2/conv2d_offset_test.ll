@@ -23,11 +23,11 @@ define dso_local noundef i32 @_Z3foov() #0 {
 ; CHECK-NEXT:    nop ; movxm p1, #(X+92)
 ; CHECK-NEXT:    mova m0, #-164
 ; CHECK-NEXT:    mov p0, p1
-; CHECK-NEXT:    lda r0, [p1, #8]
-; CHECK-NEXT:    paddb [p0], #96
+; CHECK-NEXT:    paddb [p0], #8
+; CHECK-NEXT:    lda r0, [p0], #88
 ; CHECK-NEXT:    lda.u8 r1, [p0], m0
 ; CHECK-NEXT:    mova m0, #12
-; CHECK-NEXT:    lda r1, [p1], #8
+; CHECK-NEXT:    lda r1, [p1, #0]
 ; CHECK-NEXT:    lda.u16 r1, [p0], m0
 ; CHECK-NEXT:    mova m0, #60
 ; CHECK-NEXT:    lda.u8 r1, [p0], m0
@@ -42,7 +42,7 @@ define dso_local noundef i32 @_Z3foov() #0 {
 ; CHECK-NEXT:    add r0, r0, r1
 ; CHECK-NEXT:    lda r1, [p0], #-48
 ; CHECK-NEXT:    lda r1, [p0], #32
-; CHECK-NEXT:    lda r1, [p1, #0]
+; CHECK-NEXT:    lda r1, [p1, #8]
 ; CHECK-NEXT:    lda r1, [p0], #-136
 ; CHECK-NEXT:    lda r1, [p0, #0]
 ; CHECK-NEXT:    add r0, r0, r1

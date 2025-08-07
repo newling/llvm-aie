@@ -36,7 +36,12 @@ static cl::opt<unsigned> StackAddrSpace(
     cl::desc("Specify the addrspace where the stack is allocated "
              "(5: Bank A, 6: Bank B, 7: Bank C, 8: Bank D)"));
 
+static cl::opt<bool> EnableOutlineMemoryGEP(
+    "enable-outline-memory-gep", cl::Hidden, cl::init(true),
+    cl::desc("Enable Outlining GEPs in Memory Instructions."));
+
 extern cl::opt<bool> EnableAddressChaining;
+extern cl::opt<bool> EnableGlobalPtrModOptimizer;
 extern cl::opt<bool> EnableStagedRA;
 extern cl::opt<bool> EnableSuperRegSplitting;
 extern cl::opt<bool> AllocateMRegsFirst;
@@ -85,6 +90,8 @@ void AIE2PassConfig::addPreRegBankSelect() {
     addPass(createAIE2PostLegalizerGenericCombiner());
     if (EnableAddressChaining)
       addPass(createAIEClusterBaseAddress());
+    if (EnableGlobalPtrModOptimizer)
+      addPass(createAIEPtrModOptimizer());
     addPass(createAIE2PostLegalizerCustomCombiner());
   }
 }
@@ -117,6 +124,12 @@ void AIE2PassConfig::addPreRegAlloc() {
     addPass(createDumpModulePass(/*Suffix=*/"before-ra"));
     addPass(createMachineFunctionDumperPass(/*Suffix=*/"before-ra"));
   }
+}
+
+void AIE2PassConfig::addISelPrepare() {
+  if (EnableOutlineMemoryGEP)
+    addPass(createAIEOutlineMemoryGEP());
+  TargetPassConfig::addISelPrepare();
 }
 
 static bool onlyAllocate3DRegisters(const TargetRegisterInfo &TRI,

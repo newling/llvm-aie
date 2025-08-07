@@ -4,7 +4,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// (c) Copyright 2023-2024 Advanced Micro Devices, Inc. or its affiliates
+// (c) Copyright 2023-2025 Advanced Micro Devices, Inc. or its affiliates
 //
 //===----------------------------------------------------------------------===//
 //
@@ -54,8 +54,10 @@ FunctionPass *createAIEBaseHardwareLoopsPass();
 FunctionPass *createAIEPseudoBranchExpansion();
 FunctionPass *createAIESubRegConstrainer();
 MachineFunctionPass *createAIEClusterBaseAddress();
+MachineFunctionPass *createAIEPtrModOptimizer();
 MachineFunctionPass *createAIEAddressSpaceFlattening();
 MachineFunctionPass *createAIEEliminateDuplicatePHI();
+FunctionPass *createAIEOutlineMemoryGEP();
 FunctionPass *createAIESuperRegRewriter();
 FunctionPass *createAIEWawRegRewriter();
 FunctionPass *createAIEPostSelectOptimize();
@@ -64,6 +66,7 @@ createDeadMachineInstructionElim(bool KeepLifetimeInstructions);
 
 void initializeAIEBaseHardwareLoopsPass(PassRegistry &);
 void initializeAIEClusterBaseAddressPass(PassRegistry &);
+void initializeAIEPtrModOptimizerPass(PassRegistry &);
 void initializeAIEAddressSpaceFlatteningPass(PassRegistry &);
 void initializeAIEEliminateDuplicatePHIPass(PassRegistry &);
 extern char &AIEFormatSelectorID;
@@ -81,6 +84,8 @@ extern char &AIESuperRegRewriterID;
 void initializeAIESuperRegRewriterPass(PassRegistry &);
 extern char &AIEWawRegRewriterID;
 void initializeAIEWawRegRewriterPass(PassRegistry &);
+extern char &AIEOutlineMemoryGEPID;
+void initializeAIEOutlineMemoryGEPPass(PassRegistry &);
 
 ImmutablePass *createAIEBaseAAWrapperPass();
 void initializeAIEBaseAAWrapperPassPass(PassRegistry &);

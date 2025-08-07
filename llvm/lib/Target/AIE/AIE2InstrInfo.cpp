@@ -1434,6 +1434,93 @@ AIE2InstrInfo::getZOLSupport() const {
   return Result;
 }
 
+bool AIE2InstrInfo::isOffsetInImmediateRange(
+    unsigned Opcode, unsigned LoadStoreSize,
+    std::optional<APInt> Offset) const {
+  if (!Offset)
+    return false;
+
+  switch (Opcode) {
+  case AIE2::G_AIE_OFFSET_LOAD:
+  case AIE2::G_AIE_OFFSET_STORE: {
+    switch (LoadStoreSize) {
+    case 8:
+    case 16:
+      return checkSignedImmediateRange<3, 1>(Offset);
+    case 20:
+    case 32:
+      return checkSignedImmediateRange<6, 4>(Offset);
+    case 128:
+      return checkSignedImmediateRange<6, 16>(Offset);
+    case 256:
+      return checkSignedImmediateRange<6, 32>(Offset);
+    case 512:
+      return checkSignedImmediateRangeSplitting<6, 32, 32>(Offset);
+    default:
+      return false;
+    }
+  }
+  case AIE2::G_AIE_POSTINC_LOAD:
+  case AIE2::G_AIE_POSTINC_STORE: {
+    switch (LoadStoreSize) {
+    case 8:
+    case 16:
+      return checkSignedImmediateRange<4, 1>(Offset);
+    case 20:
+    case 32:
+      return checkSignedImmediateRange<7, 4>(Offset);
+    case 128:
+      return checkSignedImmediateRange<7, 16>(Offset);
+    case 256:
+    case 512:
+      return checkSignedImmediateRange<7, 32>(Offset);
+    default:
+      return false;
+    }
+  }
+  case AIE2::G_AIE_OFFSET_ZEXTLOAD:
+  case AIE2::G_AIE_OFFSET_SEXTLOAD: {
+    switch (LoadStoreSize) {
+    case 8:
+    case 16:
+      return checkSignedImmediateRange<3, 1>(Offset);
+    default:
+      return false;
+    }
+  }
+  case AIE2::G_AIE_POSTINC_SEXTLOAD:
+  case AIE2::G_AIE_POSTINC_ZEXTLOAD: {
+    switch (LoadStoreSize) {
+    case 8:
+    case 16:
+      return checkSignedImmediateRange<4, 1>(Offset);
+    default:
+      return false;
+    }
+  }
+  default:
+    return false;
+  }
+}
+
+namespace {
+static const std::map<unsigned, std::set<unsigned>> S20Consumers = {
+    {Intrinsic::aie2_add_2d, {4, 5, 6, 7}},
+    {Intrinsic::aie2_add_3d, {5, 6, 7, 8, 9, 10, 11}}};
+
+static const std::map<unsigned, std::pair<unsigned, unsigned>>
+    PtrInputAndOutputIdx = {{Intrinsic::aie2_add_2d, {3, 0}},
+                            {Intrinsic::aie2_add_3d, {4, 0}}};
+
+static const AIEBaseInstrInfo::PTRModSupport AIE2PTRModSupport{
+    &S20Consumers, &PtrInputAndOutputIdx};
+
+} // namespace
+
+const AIEBaseInstrInfo::PTRModSupport &AIE2InstrInfo::getPTRModSupport() const {
+  return AIE2PTRModSupport;
+}
+
 unsigned AIE2InstrInfo::getPseudoJNZDOpcode() const { return AIE2::PseudoJNZD; }
 
 unsigned AIE2InstrInfo::getNumBypassedCycles(const InstrItineraryData *ItinData,

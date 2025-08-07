@@ -55,8 +55,8 @@ define void @add2d(ptr noalias %params, ptr noalias %ifm1_data, ptr noalias %ifm
 ; ASM-NEXT:    lda dn4, [p0], #-8; st r3, [p5, #0]
 ; ASM-NEXT:    lda dj4, [p0], #-36; paddb [p4], #-48; mov p5, r5
 ; ASM-NEXT:    lda p4, [p4, #0]; st m1, [p5, #0]
-; ASM-NEXT:    lda r0, [p0], #-36; mov p5, sp
-; ASM-NEXT:    lda r5, [p0, #0]; paddb [p5], #-52
+; ASM-NEXT:    lda r0, [p0, #0]; mov p5, sp
+; ASM-NEXT:    lda r5, [p0, #-36]; paddb [p5], #-52
 ; ASM-NEXT:    lda p5, [p5, #0]; mov p0, sp
 ; ASM-NEXT:    st m0, [p7, #0]
 ; ASM-NEXT:    mov p7, sp

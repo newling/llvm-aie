@@ -164,6 +164,12 @@ def combine_vector_shuffle_to_extract_insert_elt_to_broadcast : GICombineRule<
          [{ return matchShuffleToExtractInsertEltToBroadcast(*${root}, MRI, ${matchinfo}); }]),
   (apply [{ Helper.applyBuildFn(*${root}, ${matchinfo}); }])>;
 
+def combine_broadcast_shl_to_add : GICombineRule<
+  (defs root:$root, build_fn_matchinfo:$matchinfo),
+  (match (wip_match_opcode G_SHL): $root,
+         [{ return matchBroadcastToShl(*${root}, MRI, (const AIEBaseInstrInfo &)B.getTII(), ${matchinfo}); }]),
+  (apply [{ Helper.applyBuildFn(*${root}, ${matchinfo}); }])>;
+
 def AIE2PreLegalizerCombiner
     : GICombiner<"AIE2PreLegalizerCombinerImpl", [ combine_unpad_vector, combine_pad_vector,
                                                                  aie_all_combines, combine_S20NarrowingOpt,
@@ -171,7 +177,8 @@ def AIE2PreLegalizerCombiner
                                                                  combine_extract_vector_elt_and_zsa_ext,
                                                                  combine_splat_vector, combine_concat_to_pad_vector, 
                                                                  combine_single_diff_build_vector,
-                                                                 combine_symmetric_build_vector]> {
+                                                                 combine_symmetric_build_vector,
+                                                                 combine_broadcast_shl_to_add]> {
   let CombineAllMethodName = "tryCombineAllImpl";
 }
 
@@ -193,7 +200,8 @@ def AIE2PPreLegalizerCombiner
                                                                  combine_vector_shuffle_concat_extracted_subvectors,
                                                                  combine_paired_extracts,
                                                                  combine_vector_shuffle_to_extract_insert_elt_to_broadcast,
-                                                                 combine_symmetric_build_vector]> {
+                                                                 combine_symmetric_build_vector,
+                                                                 combine_broadcast_shl_to_add]> {
   let CombineAllMethodName = "tryCombineAllImpl";
 }
 
@@ -229,12 +237,11 @@ def combine_upd_to_concat : GICombineRule<
   (apply [{ applyUpdToConcat(*${root}, MRI, B, ${matchinfo}); }])
 >;
 
-def load_store_increment_matchdata : GIDefMatchData<"AIELoadStoreCombineMatchData">;
 def combine_load_store_increment : GICombineRule <
-  (defs root:$root, load_store_increment_matchdata:$matchinfo),
+  (defs root:$root),
   (match (wip_match_opcode G_LOAD, G_ZEXTLOAD, G_SEXTLOAD, G_STORE):$root,
-          [{ return matchLdStInc(*${root}, MRI, ${matchinfo}, Helper, B.getTII()); }]),
-  (apply [{ applyLdStInc(*${root}, MRI, B, ${matchinfo}, Observer); }] )
+          [{ return matchLdStInc(*${root}, MRI, Helper, B.getTII(), GlobalCombiners); }]),
+  (apply [{ applyLdStInc(*${root}, MRI, Helper, B, Observer, GlobalCombiners); }] )
 >;
 
 def combine_add_vector_elt_undef : GICombineRule <
@@ -268,8 +275,18 @@ def combine_offset_load_store_share_ptradd : GICombineRule<
   (apply [{ applyOffsetLoadStoreSharePtrAdd(*${root}, MRI, B, ${matchinfo}); }])
 >;
 
+
+def combine_global_load_store_increment : GICombineRule <
+  (defs root:$root),
+  (match (wip_match_opcode G_LOAD, G_ZEXTLOAD, G_SEXTLOAD, G_STORE):$root,
+          [{ return matchGlobalPtrModOptimizer(*${root}, MRI, Helper, B.getTII(), GlobalCombiners); }]),
+  (apply [{ applyLdStInc(*${root}, MRI, Helper, B, Observer, GlobalCombiners); }] )>;
+
+
+
 def AIE2PostLegalizerCustomCombiner
-    : GICombiner<"AIE2PostLegalizerCustomCombinerImpl", [ combine_load_store_split,
+    : GICombiner<"AIE2PostLegalizerCustomCombinerImpl", [ combine_global_load_store_increment,
+                                                          combine_load_store_split,
                                                           ptr_add_immed_chain,
                                                           combine_load_store_increment,
                                                           combine_offset_load_store_ptradd,
@@ -282,9 +299,10 @@ def AIE2PostLegalizerCustomCombiner
 }
 
 def AIE2PPostLegalizerCustomCombiner
-    : GICombiner<"AIE2PPostLegalizerCustomCombinerImpl", [ combine_load_store_increment,
-                                                           ptr_add_immed_chain, 
-                                                           combine_offset_load_store_ptradd,
-                                                           combine_offset_load_store_share_ptradd,
-                                                           combine_add_vector_elt_undef ]> {
+    : GICombiner<"AIE2PPostLegalizerCustomCombinerImpl", [  combine_global_load_store_increment,
+                                                            combine_load_store_increment,
+                                                            ptr_add_immed_chain, 
+                                                            combine_offset_load_store_ptradd,
+                                                            combine_offset_load_store_share_ptradd,
+                                                            combine_add_vector_elt_undef ]> {
 }
